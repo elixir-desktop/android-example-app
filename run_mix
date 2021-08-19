@@ -1,0 +1,22 @@
+#!/bin/bash
+
+BASE=`pwd`
+export MIX_ENV=prod
+export MIX_TARGET=android
+
+if [ ! -d "elixir-app" ]; then
+  git clone https://github.com/elixir-desktop/desktop-example-app.git elixir-app
+  cd elixir-app
+  mix deps.get
+else
+  cd elixir-app
+fi
+
+if [ ! -d "assets/node_modules" ]; then
+  cd assets && npm i && npm run deploy && cd .. && mix phx.digest
+fi
+
+mix release --overwrite && \
+  cd _build/prod/rel/todo_app && \
+  zip -r $BASE/src/main/assets/app.zip lib/ releases/ --exclude "*.so"
+
