@@ -17,6 +17,6 @@ if [ ! -d "assets/node_modules" ]; then
 fi
 
 mix release --overwrite && \
-  cd _build/prod/rel/todo_app && \
+  cd _build/android_prod/rel/todo_app && \
   zip -r $BASE/src/main/assets/app.zip lib/ releases/ --exclude "*.so"
 
