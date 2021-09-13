@@ -6,7 +6,7 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 1. Install [Android Studio](https://developer.android.com/studio) + NDK. 
 
-2. Go to "Files -> New -> Project from Version Control -> GitHub"
+2. Go to "Files -> New -> Project from Version Control" and enter this URL: https://github.com/elixir-desktop/android-example-app/ 
 
 3. [Connect your Phone](https://developer.android.com/studio/run/device) to Android Studio
 
@@ -16,7 +16,7 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 ### The x86_64 emulator does not work 
 
-So you've got to run on your phone or you the slow ARM emulator. If you have an idea how to fix the issue. Please send a pull request to the runtime project.
+So you've got to run on your phone or you the slow ARM emulator. If you have an idea how to fix the issue. Please send a pull request to the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) project.
 
 ### Initial Startup time is slow
 
@@ -30,7 +30,7 @@ This sample only launch the elixir app and shows it in an Android WebView. There
 
 - The current sample is using __Android API 23__ and above
 
-- The Erlang runtime is for ease of use embedded in this example git repository. The native runtimes for Android ARM, ARM64 and X86_64 and the exqlite nif are are generated using the [Desktop Runtime](https://github.com/elixir-desktop/runtime) repository. 
+- The Erlang runtime is for ease of use embedded in this example git repository. The native runtimes for Android ARM, ARM64 and X86_64 and the exqlite nif are are generated using the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) repository. 
 
 - Android specific settings, icons and metadata are all contained in this Android Studio wrapper project. 
 
