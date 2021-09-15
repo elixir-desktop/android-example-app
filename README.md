@@ -14,10 +14,6 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 ## Known todos
 
-### The x86_64 emulator does not work 
-
-So you've got to run on your phone or you the slow ARM emulator. If you have an idea how to fix the issue. Please send a pull request to the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) project.
-
 ### Initial Startup time is slow
 
 Running the app for the first time it will extract the full Elixir & App runtime at start. On my Phone this takes anywhere from 10-20 seconds. After that the startup is releatively quick.

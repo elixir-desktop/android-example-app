@@ -55,28 +55,27 @@ const char* startErlang(std::string root_dir, std::string log_dir)
     if (!app_version) ERROR("Could not idenfity app version in start_erl.data file");
 
 
-    std::string bin_dir = root_dir + "erts-" + erts_version + "/bin/";
+    std::string bin_dir = getenv("BINDIR");
     // keeping it static to keep the environment variable alive
-    static std::string env_bin_dir = std::string("BINDIR=").append(bin_dir);
     char *path = getenv("PATH");
     // keeping it static to keep the environment variable alive
     static std::string env_path = std::string("PATH=").append(path).append(":").append(bin_dir);
 
     chdir(root_dir.c_str());
-    putenv((char *)env_bin_dir.c_str());
     putenv((char *)env_path.c_str());
 
     start_logger();
 
-    // does not work on android
+    std::string liberlang = getenv("LIBERLANG");
+
+    // RTLD_GLOBAL does not work on android
     // https://android-ndk.narkive.com/iNWj05IV/weak-symbol-linking-when-loading-dynamic-libraries
     // https://android.googlesource.com/platform/bionic/+/30b17e32f0b403a97cef7c4d1fcab471fa316340/linker/linker_namespaces.cpp#100
-    std::string liberlang = bin_dir + "liberlang.so";
     void* lib = dlopen(liberlang.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if (!lib) ERROR("Failed opening liberlang.so\n")
 
-    std::string nif = root_dir + "lib/exqlite-0.5.1/priv/sqlite3_nif.so";
-    test_nif(nif);
+    // std::string nif = root_dir + "lib/exqlite-0.5.1/priv/sqlite3_nif.so";
+    // test_nif(nif);
 
     startfun = (void (*)(int, char**)) dlsym(lib, "erl_start");
     if (!startfun) ERROR("Failed loading erlang startfun\n")
@@ -97,7 +96,7 @@ const char* startErlang(std::string root_dir, std::string log_dir)
             "-sbwt",
             "none",
             "--",
-            "-init_debug",
+            // "-init_debug",
             "-root",
             root_dir.c_str(),
             "-progname",
