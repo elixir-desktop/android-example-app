@@ -7,16 +7,19 @@ import android.util.Log
 import android.webkit.WebSettings
 import android.webkit.WebView
 import org.json.JSONArray
+import org.tukaani.xz.XZInputStream
 import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 import java.io.*
+import java.util.*
 import java.util.zip.ZipInputStream
 
 
 class Bridge(private val applicationContext : Context, private var webview : WebView) {
     private val server = ServerSocket(0)
     private var lastURL = String()
+    private val assets = applicationContext.assets.list("")
 
     init {
         Os.setenv("BRIDGE_PORT", server.localPort.toString(), false);
@@ -54,7 +57,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             throw Exception("Could not find any supported ABI")
         }
 
-        val runtime = "$prefix-runtime.zip"
+        val runtime = "$prefix-runtime"
         Log.d("RUNTIME", runtime)
 
         thread(start = true) {
@@ -64,46 +67,43 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             val nativeDir = packageInfo.applicationInfo.nativeLibraryDir
             val lastUpdateTime: Long = packageInfo.lastUpdateTime / 1000
 
-            val releasedir = applicationContext.filesDir.absolutePath + "/build-${lastUpdateTime}"
-            var bindir = "$releasedir/bin"
-            Os.setenv("BINDIR", bindir, false);
+            val releaseDir = applicationContext.filesDir.absolutePath + "/build-${lastUpdateTime}"
+            var binDir = "$releaseDir/bin"
+
+            Os.setenv("BINDIR", binDir, false);
             Os.setenv("LIBERLANG", "$nativeDir/liberlang.so", false);
-            val donefile = File("$releasedir/done")
+            val doneFile = File("$releaseDir/done")
 
 
-            if (!donefile.exists()) {
+            if (!doneFile.exists()) {
 
                 // Creating symlinks for binaries
                 // https://github.com/JeromeDeBretagne/erlanglauncher/issues/2
-                File(bindir).mkdirs()
+                File(binDir).mkdirs()
                 for (file in File(nativeDir).list()) {
                     if (file.startsWith("lib__")) {
                         var name = File(file).name
                         name = name.substring(5, name.length - 3)
-                        Log.d("BIN", "$nativeDir/$file -> $bindir/$name")
-                        Os.symlink("$nativeDir/$file", "$bindir/$name")
+                        Log.d("BIN", "$nativeDir/$file -> $binDir/$name")
+                        Os.symlink("$nativeDir/$file", "$binDir/$name")
                     }
                 }
 
-                if (unpackZip(releasedir, applicationContext.assets.open("app.zip")) &&
-                        unpackZip(releasedir, applicationContext.assets.open(runtime))) {
-                    val assets = applicationContext.assets.list("")
-
-                    for (lib in File("$releasedir/lib").list()) {
+                if (unpackAsset(releaseDir, "app") &&
+                        unpackAsset(releaseDir, runtime)) {
+                    for (lib in File("$releaseDir/lib").list()) {
                         val parts = lib.split("-")
                         val name = parts[0]
 
-                        val nif = "$prefix-nif-$name.zip"
-                        if (assets!!.contains(nif)) {
-                            unpackZip("$releasedir/lib/$lib/priv", applicationContext.assets.open(nif))
-                        }
+                        val nif = "$prefix-nif-$name"
+                        unpackAsset("$releaseDir/lib/$lib/priv", nif)
                     }
 
-                    donefile.writeText("$lastUpdateTime")
+                    doneFile.writeText("$lastUpdateTime")
                 }
             }
 
-            if (!donefile.exists()) {
+            if (!doneFile.exists()) {
                 Log.e("ERROR", "Failed to extract runtime")
                 throw Exception("Failed to extract runtime")
             } else {
@@ -112,7 +112,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
                     logdir = applicationContext.filesDir.absolutePath;
                 }
                 Log.d("ERLANG", "Starting beam...")
-                val ret = startErlang(releasedir, logdir!!)
+                val ret = startErlang(releaseDir, logdir!!)
                 Log.d("ERLANG", ret)
                 if (ret != "ok") {
                     throw Exception(ret)
@@ -122,10 +122,22 @@ class Bridge(private val applicationContext : Context, private var webview : Web
     }
 
 
-    private fun unpackZip(releasedir: String, inputStream: InputStream): Boolean
-    {
-        Log.d("RELEASEDIR", releasedir)
-        File(releasedir).mkdirs()
+    private fun unpackAsset(releaseDir: String, assetName: String): Boolean {
+        assets!!
+        if (assets!!.contains("$assetName.zip.xz")) {
+            val input = BufferedInputStream(applicationContext.assets.open("$assetName.zip.xz"))
+            return unpackZip(releaseDir, XZInputStream(input))
+        }
+        if (assets!!.contains("$assetName.zip")) {
+            val input = BufferedInputStream(applicationContext.assets.open("$assetName.zip"))
+            return unpackZip(releaseDir, input)
+        }
+        return false
+    }
+
+    private fun unpackZip(releaseDir: String, inputStream: InputStream): Boolean {
+        Log.d("RELEASEDIR", releaseDir)
+        File(releaseDir).mkdirs()
         try
         {
             val zis = ZipInputStream(BufferedInputStream(inputStream))
@@ -138,7 +150,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
                 // Need to create directories if not exists, or
                 // it will generate an Exception...
-                var fullpath = "$releasedir/$filename"
+                var fullpath = "$releaseDir/$filename"
                 if (ze.isDirectory) {
                     Log.d("DIR", fullpath)
                     File(fullpath).mkdirs()
@@ -216,13 +228,28 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
             var response = ref
             response += if (method == ":getOsDescription") {
-                val info = "Android ${Build.DEVICE} ${Build.BRAND} ${Build.VERSION.BASE_OS} ${Build.SUPPORTED_ABIS.joinToString(",")}"
+                val info = "Android ${Build.DEVICE} ${Build.BRAND} ${Build.VERSION.BASE_OS} ${
+                    Build.SUPPORTED_ABIS.joinToString(",")
+                }"
                 stringToList(info).toByteArray()
+            } else if (method == ":getCanonicalName") {
+                val primaryLocale = getCurrentLocale(applicationContext)
+                var locale = "${primaryLocale.language}_${primaryLocale.country}"
+                stringToList(locale).toByteArray()
+
             } else {
                 "use_mock".toByteArray()
             }
             writer.writeInt(response.size)
             writer.write(response)
+        }
+    }
+
+    fun getCurrentLocale(context: Context): Locale {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            context.resources.configuration.locales[0]
+        } else {
+            context.resources.configuration.locale
         }
     }
 

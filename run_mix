@@ -18,5 +18,6 @@ fi
 
 mix release --overwrite && \
   cd _build/android_prod/rel/todo_app && \
-  zip -r $BASE/src/main/assets/app.zip lib/ releases/ --exclude "*.so"
+  zip -0r $BASE/src/main/assets/app.zip lib/ releases/ --exclude "*.so" && \
+  xz -9ef $BASE/src/main/assets/app.zip
 
