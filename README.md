@@ -14,9 +14,9 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 ## Known todos
 
-### Initial Startup time is slow
+### Initial Startup could be faster
 
-Running the app for the first time it will extract the full Elixir & App runtime at start. On my Phone this takes anywhere from 10-20 seconds. After that the startup is releatively quick.
+Running the app for the first time will extract the full Elixir & App runtime at start. On my Phone this takes around 10 seconds. After that a cold app startup takes ~3-4 seconds.
 
 ### Menus and other integration not yet available
 
@@ -35,7 +35,7 @@ This sample only launch the elixir app and shows it in an Android WebView. There
 ## Screenshots
 
 ![Icons](/icon.jpg?raw=true "App in Icon View")
-![App](/app.jpg?raw=true "Running App")
+![App](/app.png?raw=true "Running App")
 
 ## Architecture
 
