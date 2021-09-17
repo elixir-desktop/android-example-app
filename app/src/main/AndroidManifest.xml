@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.elixirdesktop.example">
+    package="io.elixirdesktop.example"
+    android:installLocation="internalOnly">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -13,6 +14,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Default"
         android:extractNativeLibs="true">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="io.elixirdesktop.example.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
         <activity android:name="io.elixirdesktop.example.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,5 +32,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

@@ -1,5 +1,6 @@
 package io.elixirdesktop.example
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.os.Build
 import android.system.Os
@@ -12,8 +13,18 @@ import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 import java.io.*
+import java.net.URI
 import java.util.*
 import java.util.zip.ZipInputStream
+import androidx.core.content.ContextCompat.startActivity
+
+import android.content.Intent
+import android.net.Uri
+import androidx.core.content.ContextCompat
+
+import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat.startActivity
+import io.elixirdesktop.example.MainActivity
 
 
 class Bridge(private val applicationContext : Context, private var webview : WebView) {
@@ -225,6 +236,15 @@ class Bridge(private val applicationContext : Context, private var webview : Web
                 lastURL = args.getString(1)
                 webview.post { webview.loadUrl(lastURL) }
             }
+            if (method == ":launchDefaultBrowser") {
+                val uri = Uri.parse(args.getString(0))
+                if (uri.scheme == "http") {
+                    val browserIntent = Intent(Intent.ACTION_VIEW, uri)
+                    applicationContext.startActivity(browserIntent)
+                } else if (uri.scheme == "file") {
+                    openFile(uri.path)
+                }
+            }
 
             var response = ref
             response += if (method == ":getOsDescription") {
@@ -250,6 +270,33 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             context.resources.configuration.locales[0]
         } else {
             context.resources.configuration.locale
+        }
+    }
+
+    fun openFile(filename: String?) {
+        // Get URI and MIME type of file
+        val file = File(filename)
+        val uri =
+            FileProvider.getUriForFile(applicationContext, applicationContext.packageName + ".fileprovider", File(filename))
+
+        val mime: String? = if (file.isDirectory) {
+            "resource/folder"
+        } else {
+            applicationContext.contentResolver.getType(uri)
+        }
+
+        // Open file with user selected app
+        var intent = Intent()
+        intent.action = Intent.ACTION_VIEW
+        intent.setDataAndType(uri, mime)
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        intent = Intent.createChooser(intent, "")
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            applicationContext.startActivity(intent)
+        } catch (e : ActivityNotFoundException) {
+            Log.d("Exception", e.toString())
         }
     }
 
