@@ -33,6 +33,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
     private val assets = applicationContext.assets.list("")
 
     init {
+        Os.setenv("ELIXIR_DESKTOP_OS", "android", false);
         Os.setenv("BRIDGE_PORT", server.localPort.toString(), false);
         // not really the home directory, but persistent between app upgrades
         Os.setenv("HOME", applicationContext.filesDir.absolutePath, false);
