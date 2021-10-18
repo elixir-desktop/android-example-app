@@ -33,10 +33,10 @@ class Bridge(private val applicationContext : Context, private var webview : Web
     private val assets = applicationContext.assets.list("")
 
     init {
-        Os.setenv("ELIXIR_DESKTOP_OS", "android", false);
-        Os.setenv("BRIDGE_PORT", server.localPort.toString(), false);
+        Os.setenv("ELIXIR_DESKTOP_OS", "android", false)
+        Os.setenv("BRIDGE_PORT", server.localPort.toString(), false)
         // not really the home directory, but persistent between app upgrades
-        Os.setenv("HOME", applicationContext.filesDir.absolutePath, false);
+        Os.setenv("HOME", applicationContext.filesDir.absolutePath, false)
 
         setWebView(webview)
 
@@ -44,10 +44,16 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             while (true) {
                 val socket = server.accept()
                 println("Client connected: ${socket.inetAddress.hostAddress}")
-                thread { handle(socket) }
+                thread {
+                    try {
+                        handle(socket)
+                    } catch(e : EOFException) {
+                        println("Client disconnected: ${socket.inetAddress.hostAddress}")
+                        socket.close()
+                    }
+                }
             }
         }
-
 
         // The possible values are armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64.
         var prefix = ""
@@ -77,30 +83,31 @@ class Bridge(private val applicationContext : Context, private var webview : Web
                 .getPackageInfo(applicationContext.packageName, 0)
 
             val nativeDir = packageInfo.applicationInfo.nativeLibraryDir
-            val lastUpdateTime: Long = packageInfo.lastUpdateTime / 1000
+            val lastUpdateTime = (packageInfo.lastUpdateTime / 1000).toString()
 
-            val releaseDir = applicationContext.filesDir.absolutePath + "/build-${lastUpdateTime}"
-            var binDir = "$releaseDir/bin"
-
-            Os.setenv("BINDIR", binDir, false);
-            Os.setenv("LIBERLANG", "$nativeDir/liberlang.so", false);
+            val releaseDir = applicationContext.filesDir.absolutePath + "/app"
             val doneFile = File("$releaseDir/done")
 
+            // Delete old build if new is installed
+            if (doneFile.exists() && doneFile.readText() != lastUpdateTime) {
+                File(releaseDir).deleteRecursively()
+            }
+
+            // Cleaning deprected build-xxx folders
+            for (file in applicationContext.filesDir.list()) {
+                if (file.startsWith("build-")) {
+                    File(applicationContext.filesDir.absolutePath + "/" + file).deleteRecursively()
+                }
+            }
+
+            var binDir = "$releaseDir/bin"
+
+            Os.setenv("UPDATE_DIR", "$releaseDir/update/", false);
+            Os.setenv("BINDIR", binDir, false);
+            Os.setenv("LIBERLANG", "$nativeDir/liberlang.so", false);
 
             if (!doneFile.exists()) {
-
-                // Creating symlinks for binaries
-                // https://github.com/JeromeDeBretagne/erlanglauncher/issues/2
                 File(binDir).mkdirs()
-                for (file in File(nativeDir).list()) {
-                    if (file.startsWith("lib__")) {
-                        var name = File(file).name
-                        name = name.substring(5, name.length - 3)
-                        Log.d("BIN", "$nativeDir/$file -> $binDir/$name")
-                        Os.symlink("$nativeDir/$file", "$binDir/$name")
-                    }
-                }
-
                 if (unpackAsset(releaseDir, "app") &&
                         unpackAsset(releaseDir, runtime)) {
                     for (lib in File("$releaseDir/lib").list()) {
@@ -111,24 +118,39 @@ class Bridge(private val applicationContext : Context, private var webview : Web
                         unpackAsset("$releaseDir/lib/$lib/priv", nif)
                     }
 
-                    doneFile.writeText("$lastUpdateTime")
+                    doneFile.writeText(lastUpdateTime)
                 }
             }
 
             if (!doneFile.exists()) {
                 Log.e("ERROR", "Failed to extract runtime")
                 throw Exception("Failed to extract runtime")
-            } else {
-                var logdir = applicationContext.getExternalFilesDir("")?.path
-                if (logdir == null) {
-                    logdir = applicationContext.filesDir.absolutePath;
+            }
+
+            // Creating symlinks for binaries
+            // Re-creating even on relaunch because we can't
+            // be sure of the native libs directory
+            // https://github.com/JeromeDeBretagne/erlanglauncher/issues/2
+            for (file in File(nativeDir).list()) {
+                if (file.startsWith("lib__")) {
+                    var name = File(file).name
+                    name = name.substring(5, name.length - 3)
+                    Log.d("BIN", "$nativeDir/$file -> $binDir/$name")
+                    File("$binDir/$name").delete()
+                    Os.symlink("$nativeDir/$file", "$binDir/$name")
                 }
-                Log.d("ERLANG", "Starting beam...")
-                val ret = startErlang(releaseDir, logdir!!)
-                Log.d("ERLANG", ret)
-                if (ret != "ok") {
-                    throw Exception(ret)
-                }
+            }
+
+            var logdir = applicationContext.getExternalFilesDir("")?.path
+            if (logdir == null) {
+                logdir = applicationContext.filesDir.absolutePath;
+            }
+            Os.setenv("LOG_DIR", logdir!!, true)
+            Log.d("ERLANG", "Starting beam...")
+            val ret = startErlang(releaseDir, logdir!!)
+            Log.d("ERLANG", ret)
+            if (ret != "ok") {
+                throw Exception(ret)
             }
         }
     }

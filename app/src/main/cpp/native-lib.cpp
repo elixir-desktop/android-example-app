@@ -84,11 +84,16 @@ const char* startErlang(std::string root_dir, std::string log_dir)
     std::string boot_path = root_dir + "releases/" + app_version + "/start";
     std::string lib_path = root_dir + "lib";
     std::string home_dir;
-    std::string update_dir = root_dir + "update";
     if (const char* h = getenv("HOME")) {
         home_dir = h;
     } else {
         home_dir = root_dir + "home";
+    }
+    std::string update_dir;
+    if (const char *u = getenv("UPDATE_DIR")) {
+        update_dir = u;
+    } else {
+        update_dir = root_dir + "update";
     }
 
     const char *args[] = {
@@ -110,8 +115,8 @@ const char* startErlang(std::string root_dir, std::string log_dir)
             "enabled",
             "--",
             // "-heart",
-            // "-pa",
-            // update_dir.c_str(),
+            "-pa",
+            update_dir.c_str(),
             "-start_epmd",
             "false",
             //"-kernel",

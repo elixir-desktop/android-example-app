@@ -13,10 +13,11 @@ else
 fi
 
 if [ ! -d "assets/node_modules" ]; then
-  cd assets && npm i && npm run deploy && cd .. && mix phx.digest
+  cd assets && npm i
 fi
 
-mix release --overwrite && \
+mix assetsp.deploy && \
+  mix release --overwrite && \
   cd _build/android_prod/rel/todo_app && \
   zip -0r $BASE/src/main/assets/app.zip lib/ releases/ --exclude "*.so" && \
   xz -9ef $BASE/src/main/assets/app.zip
