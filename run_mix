@@ -16,7 +16,7 @@ if [ ! -d "assets/node_modules" ]; then
   cd assets && npm i
 fi
 
-mix assetsp.deploy && \
+mix assets.deploy && \
   mix release --overwrite && \
   cd _build/android_prod/rel/todo_app && \
   zip -0r $BASE/src/main/assets/app.zip lib/ releases/ --exclude "*.so" && \
