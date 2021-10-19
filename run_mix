@@ -13,7 +13,7 @@ else
 fi
 
 if [ ! -d "assets/node_modules" ]; then
-  cd assets && npm i
+  cd assets && npm i && cd ..
 fi
 
 mix assets.deploy && \
