@@ -4,15 +4,25 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 ## How to build & run
 
-1. Install [Android Studio](https://developer.android.com/studio) + NDK. 
+1. Install [Android Studio](https://developer.android.com/studio) + NDK.
 
-2. Go to "Files -> New -> Project from Version Control" and enter this URL: https://github.com/elixir-desktop/android-example-app/ 
+1. Go to "Files -> New -> Project from Version Control" and enter this URL: https://github.com/elixir-desktop/android-example-app/ 
 
-3. [Connect your Phone](https://developer.android.com/studio/run/device) to Android Studio
+1. Update the `run_mix` to activate the correct Erlang/Elixir version during build.
 
-4. Start the App
+1. [Connect your Phone](https://developer.android.com/studio/run/device) to Android Studio
+
+1. Start the App
 
 ## Known todos
+
+### Update built-in Runtime
+
+The current runtime that is precompiled and sits in assets/ folder is based on dev branch of OTP currently under
+https://github.com/diodechain/otp/tree/diode/beta
+Because the included OTP apps have different versions such as `crypto-5.0.3` you can only compile this project 
+with the very same OTP version. You can probably build it with `kerl`. But I'll update the runtime to a newer stable
+OTP build soon`(tm)` because all neccesary changes have been merged by the Erlang team already.
 
 ### Initial Startup could be faster
 

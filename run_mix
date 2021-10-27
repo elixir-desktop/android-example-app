@@ -1,6 +1,8 @@
 #!/bin/bash
 
 BASE=`pwd`
+# Here activate your Erlang/Elixir version, in my case this is using kerl:
+# . /Users/dominicletz/projects/24.beta/activate
 export MIX_ENV=prod
 export MIX_TARGET=android
 
