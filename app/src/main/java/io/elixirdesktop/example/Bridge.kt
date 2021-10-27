@@ -43,6 +43,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         thread(start = true) {
             while (true) {
                 val socket = server.accept()
+                socket.tcpNoDelay = true
                 println("Client connected: ${socket.inetAddress.hostAddress}")
                 thread {
                     try {
@@ -246,8 +247,6 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             reader.readFully(ref);
             var data = ByteArray(length - ref.size);
             reader.readFully(data)
-
-            println("Parsing:: ${String(data)}")
 
             val json = JSONArray(String(data))
 
