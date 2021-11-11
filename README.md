@@ -4,6 +4,8 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 ## How to build & run
 
+1. Install the beta OTP build *(see known issues)
+   
 1. Install [Android Studio](https://developer.android.com/studio) + NDK.
 
 1. Go to "Files -> New -> Project from Version Control" and enter this URL: https://github.com/elixir-desktop/android-example-app/ 
@@ -17,6 +19,15 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 ## Known todos
 
 ### Update built-in Runtime
+
+To have the embedded Erlang match the one you use for compilation you can install
+the same version as the embedded:
+
+```bash
+mkdir -p ~/projects/
+kerl build git https://github.com/diodechain/otp.git diode/beta 24.beta
+kerl install 24.beta ~/projects/24.beta
+```
 
 The current runtime that is precompiled and sits in assets/ folder is based on dev branch of OTP currently under
 https://github.com/diodechain/otp/tree/diode/beta

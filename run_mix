@@ -1,8 +1,14 @@
 #!/bin/bash
-
+set -e
 BASE=`pwd`
-# Here activate your Erlang/Elixir version, in my case this is using kerl:
-# . /Users/dominicletz/projects/24.beta/activate
+# Here activate your Erlang/Elixir version, in my case this is using kerl.
+# To have the embedded Erlang match the one you use for compilation you can install
+# the same version as the embedded:
+# mkdir -p ~/projects/
+# kerl build git https://github.com/diodechain/otp.git diode/beta 24.beta
+# kerl install 24.beta ~/projects/24.beta
+
+. ~/projects/24.beta/activate
 export MIX_ENV=prod
 export MIX_TARGET=android
 
