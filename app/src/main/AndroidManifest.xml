@@ -25,7 +25,9 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <activity android:name="io.elixirdesktop.example.MainActivity">
+        <activity
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|fontScale|keyboard|layoutDirection|mcc|mnc|navigation|smallestScreenSize|touchscreen|uiMode"
+            android:name="io.elixirdesktop.example.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

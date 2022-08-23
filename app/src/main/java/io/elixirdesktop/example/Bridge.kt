@@ -1,36 +1,49 @@
 package io.elixirdesktop.example
 
+import android.app.PendingIntent
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.os.Build
-import android.system.Os
-import android.util.Log
-import android.webkit.WebSettings
-import android.webkit.WebView
-import org.json.JSONArray
-import org.tukaani.xz.XZInputStream
-import java.net.ServerSocket
-import java.net.Socket
-import kotlin.concurrent.thread
-import java.io.*
-import java.net.URI
-import java.util.*
-import java.util.zip.ZipInputStream
-import androidx.core.content.ContextCompat.startActivity
-
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.Message
+import android.system.Os
+import android.util.Log
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-
 import androidx.core.content.FileProvider
-import androidx.core.content.ContextCompat.startActivity
-import io.elixirdesktop.example.MainActivity
+import org.json.JSONArray
+import org.json.JSONObject
+import java.net.ServerSocket
+import kotlin.concurrent.thread
+import java.io.*
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import java.util.zip.ZipInputStream
 
 
 class Bridge(private val applicationContext : Context, private var webview : WebView) {
     private val server = ServerSocket(0)
     private var lastURL = String()
     private val assets = applicationContext.assets.list("")
+    private var writers = ArrayList<DataOutputStream>()
+    private val writerLock = ReentrantLock()
+
+    class Notification {
+        var title = String()
+        var message = String()
+        var callback = 0uL
+        var pid = JSONObject()
+        var obj = JSONArray()
+    }
+
+    private val notifications = ConcurrentHashMap<ULong, Notification>()
 
     init {
         Os.setenv("ELIXIR_DESKTOP_OS", "android", false)
@@ -46,12 +59,20 @@ class Bridge(private val applicationContext : Context, private var webview : Web
                 socket.tcpNoDelay = true
                 println("Client connected: ${socket.inetAddress.hostAddress}")
                 thread {
+                    val reader = DataInputStream(BufferedInputStream((socket.getInputStream())))
+                    val writer = DataOutputStream(socket.getOutputStream())
+                    writerLock.lock()
+                    writers.add(writer)
+                    writerLock.unlock()
                     try {
-                        handle(socket)
+                        handle(reader, writer)
                     } catch(e : EOFException) {
                         println("Client disconnected: ${socket.inetAddress.hostAddress}")
                         socket.close()
                     }
+                    writerLock.lock()
+                    writers.remove(writer)
+                    writerLock.unlock()
                 }
             }
         }
@@ -94,7 +115,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
                 File(releaseDir).deleteRecursively()
             }
 
-            // Cleaning deprected build-xxx folders
+            // Cleaning deprecated build-xxx folders
             for (file in applicationContext.filesDir.list()) {
                 if (file.startsWith("build-")) {
                     File(applicationContext.filesDir.absolutePath + "/" + file).deleteRecursively()
@@ -148,7 +169,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             }
             Os.setenv("LOG_DIR", logdir!!, true)
             Log.d("ERLANG", "Starting beam...")
-            val ret = startErlang(releaseDir, logdir!!)
+            val ret = startErlang(releaseDir, logdir)
             Log.d("ERLANG", ret)
             if (ret != "ok") {
                 throw Exception(ret)
@@ -159,11 +180,11 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
     private fun unpackAsset(releaseDir: String, assetName: String): Boolean {
         assets!!
-        if (assets!!.contains("$assetName.zip.xz")) {
-            val input = BufferedInputStream(applicationContext.assets.open("$assetName.zip.xz"))
-            return unpackZip(releaseDir, XZInputStream(input))
-        }
-        if (assets!!.contains("$assetName.zip")) {
+        //if (assets.contains("$assetName.zip.xz")) {
+        //    val input = BufferedInputStream(applicationContext.assets.open("$assetName.zip.xz"))
+        //    return unpackZip(releaseDir, XZInputStream(input))
+        //}
+        if (assets.contains("$assetName.zip")) {
             val input = BufferedInputStream(applicationContext.assets.open("$assetName.zip"))
             return unpackZip(releaseDir, input)
         }
@@ -220,7 +241,34 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
     fun setWebView(_webview: WebView) {
         webview = _webview
+        webview.webChromeClient = object : WebChromeClient() {
+            override fun onCreateWindow(
+                view: WebView?,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: Message?
+            ): Boolean {
+                val newWebView = WebView(applicationContext);
+                view?.addView(newWebView);
+                val transport = resultMsg?.obj as WebView.WebViewTransport
+
+                transport.webView = newWebView;
+                resultMsg.sendToTarget();
+
+                newWebView.setWebViewClient(object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        applicationContext.startActivity(intent);
+                        return true;
+                    }
+                });
+                return true;
+            }
+        }
+
         val settings = webview.settings
+        settings.setSupportMultipleWindows(true)
         settings.javaScriptEnabled = true
         settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
         settings.useWideViewPort = true
@@ -237,9 +285,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         return server.localPort;
     }
 
-    private fun handle(socket: Socket) {
-        val reader = DataInputStream(BufferedInputStream((socket.getInputStream())))
-        val writer = DataOutputStream(socket.getOutputStream())
+    private fun handle(reader : DataInputStream, writer : DataOutputStream) {
         val ref = ByteArray(8);
 
         while (true) {
@@ -250,13 +296,14 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
             val json = JSONArray(String(data))
 
-            //val module = json.getString(0);
+            val module = json.getString(0);
             val method = json.getString(1);
             val args = json.getJSONArray(2);
 
             if (method == ":loadURL") {
                 lastURL = args.getString(1)
                 webview.post { webview.loadUrl(lastURL) }
+
             }
             if (method == ":launchDefaultBrowser") {
                 val uri = Uri.parse(args.getString(0))
@@ -282,8 +329,25 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             } else {
                 "use_mock".toByteArray()
             }
+            writerLock.lock()
             writer.writeInt(response.size)
             writer.write(response)
+            writerLock.unlock()        }
+    }
+
+    fun sendMessage(message : ByteArray) {
+        thread() {
+            writerLock.lock()
+            while (writers.isEmpty()) {
+                writerLock.unlock()
+                Thread.sleep(100)
+                writerLock.lock()
+            }
+            for (writer in writers) {
+                writer.writeInt(message.size)
+                writer.write(message)
+            }
+            writerLock.unlock()
         }
     }
 
@@ -318,7 +382,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         try {
             applicationContext.startActivity(intent)
         } catch (e : ActivityNotFoundException) {
-            Log.d("Exception", e.toString())
+            Log.d("Exception", e.toString());
         }
     }
 
@@ -327,6 +391,22 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         return "[${numbers.joinToString(",")}]"
     }
 
+    private fun listToString(raw : JSONArray): String {
+        var title = ""
+        for (i in 0 until raw.length()) {
+            title += raw.getInt(i).toChar()
+        }
+        return title
+    }
+
+    private fun getKeyword(keywords: JSONArray, searchKey : String) : Any {
+        for (i in 0 until keywords.length()) {
+            val tupleValues = keywords.getJSONObject(i).getJSONArray(":value")
+            val key = tupleValues.getString(0)
+            if (key == searchKey) return tupleValues.get(1)
+        }
+        return ""
+    }
 
     /**
      * A native method that is implemented by the 'native-lib' native library,

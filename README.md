@@ -2,38 +2,38 @@
 
 This Android Studio project wraps the [Desktop Sample App](https://github.com/elixir-desktop/desktop-example-app) to run on an Android phone.
 
+## Runtime Notes
+
+The pre-built Erlang runtime for Android ARM/ARM64/x86 is embedded in this example git repository. These native runtime files include Erlang OTP and the exqlite nif to use SQLite on the mobile. These runtimes are generated using the CI of the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) repository.
+
+Because Erlang OTP has many native hooks for networking and cryptographics the Erlang version used to compile your App must match the pre-built binary release that is embedded. In this example that is Erlang OTP 25.0.4. This sample is shipping with a `.tool-versions` file that `asdf` will automatically use to automate this requirement. 
+
 ## How to build & run
 
-1. Install the beta OTP build *(see known issues)
-   
 1. Install [Android Studio](https://developer.android.com/studio) + NDK.
+1. Install git, npm, asdf
+
+```
+sudo apt install git npm curl
+git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2
+echo ". $HOME/.asdf/asdf.sh" >> ~/.bashrc
+echo ". $HOME/.asdf/completions/asdf.bash" >> ~/.bashrc
+. $HOME/.asdf/asdf.sh
+```
+
+1. Install Erlang-OTP (with openssl) in the same version 25.0.4 as the bundled runtime edition:
+
+```
+asdf install erlang 25.0.4
+asdf install elixir 1.13.4-otp-25
+```
 
 1. Go to "Files -> New -> Project from Version Control" and enter this URL: https://github.com/elixir-desktop/android-example-app/ 
 
-1. Update the `run_mix` to activate the correct Erlang/Elixir version during build.
-
-1. [Connect your Phone](https://developer.android.com/studio/run/device) to Android Studio
-
 1. Start the App
 
+
 ## Known todos
-
-### Update built-in Runtime
-
-To have the embedded Erlang match the one you use for compilation you can install
-the same version as the embedded:
-
-```bash
-mkdir -p ~/projects/
-kerl build git https://github.com/diodechain/otp.git diode/beta 24.beta
-kerl install 24.beta ~/projects/24.beta
-```
-
-The current runtime that is precompiled and sits in assets/ folder is based on dev branch of OTP currently under
-https://github.com/diodechain/otp/tree/diode/beta
-Because the included OTP apps have different versions such as `crypto-5.0.3` you can only compile this project 
-with the very same OTP version. You can probably build it with `kerl`. But I'll update the runtime to a newer stable
-OTP build soon`(tm)` because all neccesary changes have been merged by the Erlang team already.
 
 ### Initial Startup could be faster
 
@@ -44,10 +44,6 @@ Running the app for the first time will extract the full Elixir & App runtime at
 This sample only launch the elixir app and shows it in an Android WebView. There is no integration yet with the Android Clipboard, sharing or other OS capabilities. They can though easily be added to the `Bridge.kt` file when needed.
 
 ##  Other notes
-
-- The current sample is using __Android API 23__ and above
-
-- The Erlang runtime is for ease of use embedded in this example git repository. The native runtimes for Android ARM, ARM64 and X86_64 and the exqlite nif are are generated using the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) repository. 
 
 - Android specific settings, icons and metadata are all contained in this Android Studio wrapper project. 
 

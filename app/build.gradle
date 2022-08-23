@@ -8,7 +8,7 @@ android {
     buildToolsVersion "30.0.3"
 
     task buildNum(type: Exec, description: 'Update Elixir App') {
-        commandLine '../run_mix', 'package.mobile'
+        commandLine './run_mix', 'package.mobile'
     }
 
     tasks.withType(JavaCompile) {
