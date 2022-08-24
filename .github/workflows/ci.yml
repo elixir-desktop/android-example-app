@@ -16,7 +16,7 @@ jobs:
         . asdf/asdf.sh
         asdf plugin-add elixir
         asdf plugin-add erlang
-        asdf install
+        cd app && asdf install
 
     - name: Set up hex & rebar
       run: |
