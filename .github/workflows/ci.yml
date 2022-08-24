@@ -14,8 +14,8 @@ jobs:
         # sudo apt install curl git
         git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2
         . $HOME/.asdf/asdf.sh
-        asdf plugin-add elixir
         asdf plugin-add erlang
+        asdf plugin-add elixir
         cd app && asdf install
 
     - name: Set up hex & rebar
