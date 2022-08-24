@@ -9,15 +9,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install Elixir
+    - name: Install asdf, erlang, elixir
       run: |
-        wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && sudo dpkg -i erlang-solutions_2.0_all.deb
-        sudo apt-get update
-        sudo apt-get install esl-erlang inotify-tools
-        mkdir $HOME/elixir && cd $HOME/elixir
-        wget https://github.com/elixir-lang/elixir/releases/download/v1.11.4/Precompiled.zip
-        unzip Precompiled.zip
-        echo "$HOME/elixir/bin" >> $GITHUB_PATH
+        apt install curl git
+        git clone https://github.com/asdf-vm/asdf.git --branch v0.10.2
+        . asdf/asdf.sh
+        asdf plugin-add elixir
+        asdf plugin-add erlang
+        asdf install
 
     - name: Set up hex & rebar
       run: |
