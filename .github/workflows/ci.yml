@@ -12,10 +12,13 @@ jobs:
     - name: Install asdf, erlang, elixir
       run: |
         # sudo apt install curl git
-        git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2
+        git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.10.2
         . $HOME/.asdf/asdf.sh
+        echo "erlang"
         asdf plugin-add erlang
+        echo "elixir"
         asdf plugin-add elixir
+        echo "install"
         cd app && asdf install
 
     - name: Set up hex & rebar
