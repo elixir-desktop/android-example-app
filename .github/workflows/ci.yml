@@ -28,7 +28,9 @@ jobs:
         java-version: 11
   
     - name: Build with Gradle
-      run: bash ./gradlew assembleDebug --stacktrace
+      run: |
+        . $HOME/.asdf/asdf.sh
+        ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v1
