@@ -33,6 +33,15 @@ Because Erlang OTP has many native hooks for networking and cryptographics the E
 1. Start the App
 
 
+## Customize app name and branding
+
+Update these places with your package name:
+
+1) App name in [strings.xml](app/src/main/res/values/strings.xml#L2) and [settings.gradle](settings.gradle)
+1) Package names in [Bridge.kt:1](app/src/main/java/io/elixirdesktop/example/Bridge.kt#L1) and [MainActivity.kt:1](app/src/main/java/io/elixirdesktop/example/MainActivity.kt#L1) (rename `package io.elixirdesktop.example` -> `com.yourapp.name` or use the Android Studios refactor tool)
+1) App icon: [ic_launcher_foreground.xml](app/src/main/res/drawable-v24/ic_launcher_foreground.xml) and [ic_launcher-playstore.png](app/src/main/ic_launcher-playstore.png) 
+1) App colors: [colors.xml](app/src/main/res/values/colors.xml) and launcher background [ic_launcher_background.xml](app/src/main/res/values/ic_launcher_background.xml)
+
 ## Known todos
 
 ### Initial Startup could be faster
