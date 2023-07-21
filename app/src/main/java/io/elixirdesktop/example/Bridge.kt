@@ -1,5 +1,6 @@
 package io.elixirdesktop.example
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -116,23 +117,23 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             }
 
             // Cleaning deprecated build-xxx folders
-            for (file in applicationContext.filesDir.list()) {
+            for (file in applicationContext.filesDir.list()!!) {
                 if (file.startsWith("build-")) {
                     File(applicationContext.filesDir.absolutePath + "/" + file).deleteRecursively()
                 }
             }
 
-            var binDir = "$releaseDir/bin"
+            val binDir = "$releaseDir/bin"
 
-            Os.setenv("UPDATE_DIR", "$releaseDir/update/", false);
-            Os.setenv("BINDIR", binDir, false);
-            Os.setenv("LIBERLANG", "$nativeDir/liberlang.so", false);
+            Os.setenv("UPDATE_DIR", "$releaseDir/update/", false)
+            Os.setenv("BINDIR", binDir, false)
+            Os.setenv("LIBERLANG", "$nativeDir/liberlang.so", false)
 
             if (!doneFile.exists()) {
                 File(binDir).mkdirs()
                 if (unpackAsset(releaseDir, "app") &&
                         unpackAsset(releaseDir, runtime)) {
-                    for (lib in File("$releaseDir/lib").list()) {
+                    for (lib in File("$releaseDir/lib").list()!!) {
                         val parts = lib.split("-")
                         val name = parts[0]
 
@@ -153,7 +154,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             // Re-creating even on relaunch because we can't
             // be sure of the native libs directory
             // https://github.com/JeromeDeBretagne/erlanglauncher/issues/2
-            for (file in File(nativeDir).list()) {
+            for (file in File(nativeDir).list()!!) {
                 if (file.startsWith("lib__")) {
                     var name = File(file).name
                     name = name.substring(5, name.length - 3)
@@ -165,7 +166,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
             var logdir = applicationContext.getExternalFilesDir("")?.path
             if (logdir == null) {
-                logdir = applicationContext.filesDir.absolutePath;
+                logdir = applicationContext.filesDir.absolutePath
             }
             Os.setenv("LOG_DIR", logdir!!, true)
             Log.d("ERLANG", "Starting beam...")
@@ -206,7 +207,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
                 // Need to create directories if not exists, or
                 // it will generate an Exception...
-                var fullpath = "$releaseDir/$filename"
+                val fullpath = "$releaseDir/$filename"
                 if (ze.isDirectory) {
                     Log.d("DIR", fullpath)
                     File(fullpath).mkdirs()
@@ -239,6 +240,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         return true
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     fun setWebView(_webview: WebView) {
         webview = _webview
         webview.webChromeClient = object : WebChromeClient() {
@@ -248,22 +250,23 @@ class Bridge(private val applicationContext : Context, private var webview : Web
                 isUserGesture: Boolean,
                 resultMsg: Message?
             ): Boolean {
-                val newWebView = WebView(applicationContext);
-                view?.addView(newWebView);
+                val newWebView = WebView(applicationContext)
+                view?.addView(newWebView)
                 val transport = resultMsg?.obj as WebView.WebViewTransport
 
-                transport.webView = newWebView;
-                resultMsg.sendToTarget();
+                transport.webView = newWebView
+                resultMsg.sendToTarget()
 
-                newWebView.setWebViewClient(object : WebViewClient() {
+                newWebView.webViewClient = object : WebViewClient() {
+                    @Deprecated("Deprecated in Java")
                     override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        applicationContext.startActivity(intent);
-                        return true;
+                        applicationContext.startActivity(intent)
+                        return true
                     }
-                });
-                return true;
+                }
+                return true
             }
         }
 
@@ -282,23 +285,23 @@ class Bridge(private val applicationContext : Context, private var webview : Web
 
 
     fun getLocalPort(): Int {
-        return server.localPort;
+        return server.localPort
     }
 
     private fun handle(reader : DataInputStream, writer : DataOutputStream) {
-        val ref = ByteArray(8);
+        val ref = ByteArray(8)
 
         while (true) {
-            val length = reader.readInt();
-            reader.readFully(ref);
-            var data = ByteArray(length - ref.size);
+            val length = reader.readInt()
+            reader.readFully(ref)
+            val data = ByteArray(length - ref.size)
             reader.readFully(data)
 
             val json = JSONArray(String(data))
 
-            val module = json.getString(0);
-            val method = json.getString(1);
-            val args = json.getJSONArray(2);
+            val module = json.getString(0)
+            val method = json.getString(1)
+            val args = json.getJSONArray(2)
 
             if (method == ":loadURL") {
                 lastURL = args.getString(1)
@@ -316,18 +319,22 @@ class Bridge(private val applicationContext : Context, private var webview : Web
             }
 
             var response = ref
-            response += if (method == ":getOsDescription") {
-                val info = "Android ${Build.DEVICE} ${Build.BRAND} ${Build.VERSION.BASE_OS} ${
-                    Build.SUPPORTED_ABIS.joinToString(",")
-                }"
-                stringToList(info).toByteArray()
-            } else if (method == ":getCanonicalName") {
-                val primaryLocale = getCurrentLocale(applicationContext)
-                var locale = "${primaryLocale.language}_${primaryLocale.country}"
-                stringToList(locale).toByteArray()
+            response += when (method) {
+                ":getOsDescription" -> {
+                    val info = "Android ${Build.DEVICE} ${Build.BRAND} ${Build.VERSION.BASE_OS} ${
+                        Build.SUPPORTED_ABIS.joinToString(",")
+                    }"
+                    stringToList(info).toByteArray()
+                }
+                ":getCanonicalName" -> {
+                    val primaryLocale = getCurrentLocale(applicationContext)
+                    val locale = "${primaryLocale.language}_${primaryLocale.country}"
+                    stringToList(locale).toByteArray()
 
-            } else {
-                "use_mock".toByteArray()
+                }
+                else -> {
+                    "use_mock".toByteArray()
+                }
             }
             writerLock.lock()
             writer.writeInt(response.size)
@@ -336,7 +343,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
     }
 
     fun sendMessage(message : ByteArray) {
-        thread() {
+        thread {
             writerLock.lock()
             while (writers.isEmpty()) {
                 writerLock.unlock()
@@ -351,7 +358,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         }
     }
 
-    fun getCurrentLocale(context: Context): Locale {
+    private fun getCurrentLocale(context: Context): Locale {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             context.resources.configuration.locales[0]
         } else {
@@ -359,7 +366,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         }
     }
 
-    fun openFile(filename: String?) {
+    private fun openFile(filename: String?) {
         // Get URI and MIME type of file
         val file = File(filename)
         val uri =
@@ -382,7 +389,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
         try {
             applicationContext.startActivity(intent)
         } catch (e : ActivityNotFoundException) {
-            Log.d("Exception", e.toString());
+            Log.d("Exception", e.toString())
         }
     }
 
@@ -412,7 +419,7 @@ class Bridge(private val applicationContext : Context, private var webview : Web
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    external fun startErlang(releaseDir: String, logdir: String): String
+    private external fun startErlang(releaseDir: String, logdir: String): String
 
     companion object {
         // Used to load the 'native-lib' library on application startup.
