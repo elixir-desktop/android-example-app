@@ -28,6 +28,7 @@ class MainActivity : Activity() {
                 if (binding.browser.visibility != View.VISIBLE) {
                     binding.browser.visibility = View.VISIBLE
                     binding.splash.visibility = View.GONE
+                    reportFullyDrawn()
                 }
             }
         }
