@@ -1,4 +1,5 @@
 #!/bin/bash
+. ~/.asdf/asdf.sh
 set -e
 
 BASE=`pwd`
@@ -11,10 +12,7 @@ if [ ! -d "elixir-app" ]; then
 fi
 
 # using the right runtime versions
-if [ ! -f "elixir-app/.tool-versions" ]; then
-  cp .tool-versions elixir-app/
-fi
-
+cp .tool-versions elixir-app/
 cd elixir-app
 
 if [ ! -d "deps/desktop" ]; then
@@ -33,6 +31,6 @@ fi
 
 mix assets.deploy && \
   mix release --overwrite && \
-  cd "_build/${MIX_TARGET}_${MIX_ENV}/rel/todo_app" && \
+  cd "_build/${MIX_TARGET}_${MIX_ENV}/rel/default_release" && \
   zip -9r "$APP_FILE" lib/ releases/ --exclude "*.so"
 

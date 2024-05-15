@@ -11,8 +11,7 @@
         android:usesCleartextTraffic="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Default"
-        android:extractNativeLibs="true">
+        android:theme="@style/Theme.Default">
 
         <provider
             android:name="androidx.core.content.FileProvider"
