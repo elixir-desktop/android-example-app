@@ -21,11 +21,11 @@ Because Erlang OTP has many native hooks for networking and cryptographics the E
     . $HOME/.asdf/asdf.sh
     ```
 
-1. Install Erlang-OTP (with openssl) in the same version 25.0.4 as the bundled runtime edition:
+1. Install Erlang-OTP (with openssl) in the same version 26.2.5 as the bundled runtime edition:
 
     ```
-    asdf install erlang 25.0.4
-    asdf install elixir 1.13.4-otp-25
+    asdf install erlang 26.2.5
+    asdf install elixir 1.17.2-otp-26
     ```
 
 1. Go to "Files -> New -> Project from Version Control" and enter this URL: https://github.com/elixir-desktop/android-example-app/ 
