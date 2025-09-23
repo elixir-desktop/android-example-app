@@ -6,7 +6,7 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 The pre-built Erlang runtime for Android ARM/ARM64/x86 is embedded in this example git repository. These native runtime files include Erlang/OTP and the exqlite nif to use SQLite on the mobile. These runtimes are generated using the CI of the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) repository.
 
-Because Erlang/OTP has many native hooks for networking and cryptographics the Erlang version used to compile your App must match the pre-built binary release that is embedded. In this example that is Erlang/OTP 25.0.4. This sample is shipping with a `.tool-versions` file that `asdf` will automatically use to automate this requirement.
+Because Erlang/OTP has many native hooks for networking and cryptographics the Erlang version used to compile your App must match the pre-built binary release that is embedded. In this example that is Erlang/OTP 26.2.5. This sample is shipping with a `.tool-versions` file that `asdf` will automatically use to automate this requirement.
 
 ## How to build & run
 
@@ -19,7 +19,7 @@ Because Erlang/OTP has many native hooks for networking and cryptographics the E
     export PATH="$PATH:~/bin"
     ```
 
-1. Install Erlang/OTP (with openssl) in the same version 26.2.5 as the bundled runtime edition:
+1. Install Erlang/OTP (with openssl) in the same version as the bundled runtime edition:
 
     ```shell
     asdf plugin add erlang
