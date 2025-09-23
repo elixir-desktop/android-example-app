@@ -11,21 +11,20 @@ Because Erlang/OTP has many native hooks for networking and cryptographics the E
 ## How to build & run
 
 1. Install [Android Studio](https://developer.android.com/studio) + NDK.
-1. Install git, npm, asdf
+1. Install [asdf](https://asdf-vm.com/guide/getting-started.html), for example:
 
     ```shell
     sudo apt install git npm curl
-    git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2
-    echo ". $HOME/.asdf/asdf.sh" >> ~/.bashrc
-    echo ". $HOME/.asdf/completions/asdf.bash" >> ~/.bashrc
-    . $HOME/.asdf/asdf.sh
+    curl --silent --location -o - https://github.com/asdf-vm/asdf/releases/download/v0.18.0/asdf-v0.18.0-linux-amd64.tar.gz | tar xzf - -C ~/bin/
+    export PATH="$PATH:~/bin"
     ```
 
 1. Install Erlang/OTP (with openssl) in the same version 26.2.5 as the bundled runtime edition:
 
-    ```
-    asdf install erlang 26.2.5
-    asdf install elixir 1.17.2-otp-26
+    ```shell
+    asdf plugin add erlang
+    asdf plugin add elixir
+    cd app && asdf install
     ```
 
 1. Go to "Files -> New -> Project from Version Control" and enter this URL: [https://github.com/elixir-desktop/android-example-app/] or open your locally cloned directory.
