@@ -14,7 +14,7 @@ Because Erlang/OTP has many native hooks for networking and cryptographics the E
 1. Install [asdf](https://asdf-vm.com/guide/getting-started.html), for example:
 
     ```shell
-    sudo apt install git npm curl
+    sudo apt install curl
     curl --silent --location -o - https://github.com/asdf-vm/asdf/releases/download/v0.18.0/asdf-v0.18.0-linux-amd64.tar.gz | tar xzf - -C ~/bin/
     export PATH="$PATH:~/bin"
     ```
@@ -24,6 +24,7 @@ Because Erlang/OTP has many native hooks for networking and cryptographics the E
     ```shell
     asdf plugin add erlang
     asdf plugin add elixir
+    asdf plugin add nodejs
     cd app && asdf install
     ```
 
