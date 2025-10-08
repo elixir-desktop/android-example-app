@@ -4,34 +4,33 @@ This Android Studio project wraps the [Desktop Sample App](https://github.com/el
 
 ## Runtime Notes
 
-The pre-built Erlang runtime for Android ARM/ARM64/x86 is embedded in this example git repository. These native runtime files include Erlang OTP and the exqlite nif to use SQLite on the mobile. These runtimes are generated using the CI of the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) repository.
+The pre-built Erlang runtime for Android ARM/ARM64/x86 is embedded in this example git repository. These native runtime files include Erlang/OTP and the exqlite nif to use SQLite on the mobile. These runtimes are generated using the CI of the [Desktop Runtime](https://github.com/elixir-desktop/runtimes) repository.
 
-Because Erlang OTP has many native hooks for networking and cryptographics the Erlang version used to compile your App must match the pre-built binary release that is embedded. In this example that is Erlang OTP 25.0.4. This sample is shipping with a `.tool-versions` file that `asdf` will automatically use to automate this requirement. 
+Because Erlang/OTP has many native hooks for networking and cryptographics the Erlang version used to compile your App must match the pre-built binary release that is embedded. In this example that is Erlang/OTP 26.2.5. This sample is shipping with a `.tool-versions` file that `asdf` will automatically use to automate this requirement.
 
 ## How to build & run
 
 1. Install [Android Studio](https://developer.android.com/studio) + NDK.
-1. Install git, npm, asdf
+1. Install [asdf](https://asdf-vm.com/guide/getting-started.html), for example:
 
-    ```
-    sudo apt install git npm curl
-    git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.2
-    echo ". $HOME/.asdf/asdf.sh" >> ~/.bashrc
-    echo ". $HOME/.asdf/completions/asdf.bash" >> ~/.bashrc
-    . $HOME/.asdf/asdf.sh
+    ```shell
+    sudo apt install curl
+    curl --silent --location -o - https://github.com/asdf-vm/asdf/releases/download/v0.18.0/asdf-v0.18.0-linux-amd64.tar.gz | tar xzf - -C ~/bin/
+    export PATH="$PATH:~/bin"
     ```
 
-1. Install Erlang-OTP (with openssl) in the same version 26.2.5 as the bundled runtime edition:
+1. Install Erlang/OTP (with openssl) in the same version as the bundled runtime edition:
 
-    ```
-    asdf install erlang 26.2.5
-    asdf install elixir 1.17.2-otp-26
+    ```shell
+    asdf plugin add erlang
+    asdf plugin add elixir
+    asdf plugin add nodejs
+    cd app && asdf install
     ```
 
-1. Go to "Files -> New -> Project from Version Control" and enter this URL: https://github.com/elixir-desktop/android-example-app/ 
+1. Go to "Files -> New -> Project from Version Control" and enter this URL: [https://github.com/elixir-desktop/android-example-app/] or open your locally cloned directory.
 
 1. Start the App
-
 
 ## Customize app name and branding
 
@@ -39,7 +38,7 @@ Update these places with your package name:
 
 1) App name in [strings.xml](app/src/main/res/values/strings.xml#L2) and [settings.gradle](settings.gradle)
 1) Package names in [Bridge.kt:1](app/src/main/java/io/elixirdesktop/example/Bridge.kt#L1) and [MainActivity.kt:1](app/src/main/java/io/elixirdesktop/example/MainActivity.kt#L1) (rename `package io.elixirdesktop.example` -> `com.yourapp.name` or use the Android Studios refactor tool)
-1) App icon: [ic_launcher_foreground.xml](app/src/main/res/drawable-v24/ic_launcher_foreground.xml) and [ic_launcher-playstore.png](app/src/main/ic_launcher-playstore.png) 
+1) App icon: [ic_launcher_foreground.xml](app/src/main/res/drawable-v24/ic_launcher_foreground.xml) and [ic_launcher-playstore.png](app/src/main/ic_launcher-playstore.png)
 1) App colors: [colors.xml](app/src/main/res/values/colors.xml) and launcher background [ic_launcher_background.xml](app/src/main/res/values/ic_launcher_background.xml)
 
 ## Known todos
@@ -52,11 +51,11 @@ Running the app for the first time will extract the full Elixir & App runtime at
 
 This sample only launch the elixir app and shows it in an Android WebView. There is no integration yet with the Android Clipboard, sharing or other OS capabilities. They can though easily be added to the `Bridge.kt` file when needed.
 
-##  Other notes
+## Other notes
 
-- Android specific settings, icons and metadata are all contained in this Android Studio wrapper project. 
+- Android specific settings, icons and metadata are all contained in this Android Studio wrapper project.
 
-- `Bridge.kt` and the native library are doing most of the wrapping of the Elixir runtime. 
+- `Bridge.kt` and the native library are doing most of the wrapping of the Elixir runtime.
 
 ## Screenshots
 
