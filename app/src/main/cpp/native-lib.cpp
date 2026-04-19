@@ -54,15 +54,11 @@ const char* startErlang(std::string root_dir, std::string log_dir)
     char* app_version = strtok(0, " ");
     if (!app_version) ERROR("Could not idenfity app version in start_erl.data file");
 
-
     std::string bin_dir = getenv("BINDIR");
-    // keeping it static to keep the environment variable alive
-    char *path = getenv("PATH");
-    // keeping it static to keep the environment variable alive
-    static std::string env_path = std::string("PATH=").append(path).append(":").append(bin_dir);
+    std::string env_path = std::string(getenv("PATH")).append(":").append(bin_dir);
 
     chdir(root_dir.c_str());
-    putenv((char *)env_path.c_str());
+    setenv("PATH", (char *)env_path.c_str(), 1);
 
     start_logger();
 
