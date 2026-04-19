@@ -16,6 +16,7 @@ jobs:
         . $HOME/.asdf/asdf.sh
         asdf plugin-add erlang
         asdf plugin-add elixir
+        asdf plugin-add nodejs
 
         cd app 
         asdf install
