@@ -96,6 +96,9 @@ const char* startErlang(std::string root_dir, std::string log_dir)
         update_dir = root_dir + "update";
     }
 
+    setenv("RELEASE_ROOT", (char*)root_dir.c_str(), 0);
+    setenv("RELEASE_SYS_CONFIG", (char*)config_path.c_str(), 0);
+
     const char *args[] = {
             "test_main",
             "-sbwt",
