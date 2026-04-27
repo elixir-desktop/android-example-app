@@ -1,3 +1,7 @@
+# Deprecation Warning
+
+This project has been merged into https://github.com/elixir-desktop/desktop-example-app/tree/main/rel/android as a subfolder for android deployment. It will be maintened further there.
+
 # TodoApp Android: An Android Sample App
 
 This Android Studio project wraps the [Desktop Sample App](https://github.com/elixir-desktop/desktop-example-app) to run on an Android phone.
