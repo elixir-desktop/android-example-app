@@ -16,6 +16,7 @@ jobs:
         . $HOME/.asdf/asdf.sh
         asdf plugin-add erlang
         asdf plugin-add elixir
+        asdf plugin-add nodejs
 
         cd app 
         asdf install
@@ -33,7 +34,7 @@ jobs:
         ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: app
         path: app/build/outputs/apk/debug/app-debug.apk
